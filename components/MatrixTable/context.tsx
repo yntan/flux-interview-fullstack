@@ -40,9 +40,12 @@ type MatrixAction = {
    */
   payload?: import('../../types').Matrix
 } | {
-  type: 'SOME_ACTION',
+  type: 'UPDATE_PRICE',
   payload: any
-} // Here you will need to add your other action(s) in order to edit the pricing (remove SOME_ACTION).
+} | {
+  type: 'CANCEL_PRICE',
+  payload: any
+}
 
 /**
  * This is for the Provider component. No need to change.
@@ -95,12 +98,53 @@ const defaultState: MatrixTableState = {
 const reducer = (state: MatrixTableState, action: MatrixAction): MatrixTableState => {
   switch(action.type) {
     case 'SET_MATRIX':
-      return {
-        ...state,
+      if(action.metadata.resetToEmpty) {
+        return {
+          ...state,
+          matrix: emptyMatrix
+        }
+      } else {
+        return {
+          ...state,
+          matrix: action.payload
+        }
       }
     case 'SET_ORIGINAL_MATRIX':
       return {
-        ...state
+        ...state,
+        originalMatrix: action.payload
+      }
+    case 'UPDATE_PRICE':
+      if(action.payload.plan == 'lite') { // if edit lite input
+        return {
+          ...state,
+          matrix: {
+            ...state.matrix,
+            [action.payload.month]: {
+              ...state.matrix[action.payload.month],
+              [action.payload.plan]: action.payload.price,
+              ['standard']: action.payload.price*2,
+              ['unlimited']: action.payload.price*3
+            }
+          }
+        }
+
+      } else { // if edit standard/unlimited inputs
+        return {
+          ...state,
+          matrix: {
+            ...state.matrix,
+            [action.payload.month]: {
+              ...state.matrix[action.payload.month],
+              [action.payload.plan]: action.payload.price
+            }
+          }
+        }
+      }
+    case 'CANCEL_PRICE':
+      return {
+        ...state,
+        matrix: action.payload
       }
     default:
       return state

@@ -22,7 +22,15 @@ const defaultPricing = {
 }
 
 export default (_: import('next').NextApiRequest, res: import('next').NextApiResponse) => {
-  const pricing = require('../../public/pricing.json') || defaultPricing
-  res.statusCode = 200
-  res.json(pricing)
+  try {
+    const pricing = require('../../public/pricing.json') || defaultPricing
+    res.statusCode = 200
+    res.json(pricing)
+  } catch (e) {
+    if (e.code === "MODULE_NOT_FOUND") {
+      const pricing = defaultPricing
+      res.statusCode = 200
+      res.json(pricing)
+    }
+  }
 }
